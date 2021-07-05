@@ -331,7 +331,7 @@ public class HttpPipelineHandlerTest {
         writerFuture.completeExceptionally(cause);
         verify(statsCollector).onTerminate(eq(request.id()));
         verify(statsCollector, never()).onComplete(eq(request.id()), eq(200));
-        assertThat(metrics.counter("test.request.cancelled.responseWriteError").count(), is(1.0));
+        assertThat(metrics.counter("test.request.cancelled", "errorCause", "responseWriteError").count(), is(1.0));
 
         assertThat(responseUnsubscribed.get(), is(true));
     }
@@ -487,7 +487,7 @@ public class HttpPipelineHandlerTest {
         handler.channelRead0(ctx, request2);
 
         // Assert that the third request triggers an error.
-        assertThat(metrics.counter("test.request.cancelled.spuriousRequest").count(), is(1.0));
+        assertThat(metrics.counter("test.request.cancelled", "errorCause", "spuriousRequest").count(), is(1.0));
         assertThat(writerFuture.isCancelled(), is(true));
         assertThat(responseUnsubscribed.get(), is(true));
         verify(statsCollector).onTerminate(request.id());

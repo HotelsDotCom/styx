@@ -238,7 +238,9 @@ public class HttpPipelineHandler extends SimpleChannelInboundHandler<LiveHttpReq
     private State onSpuriousRequest(LiveHttpRequest request, State state) {
         LOGGER.warn(warningMessage("message='Spurious request received while handling another request', spuriousRequest=" + request));
 
-        meterRegistry.counter(name(meterPrefix, "request.cancelled.spuriousRequest")).increment();
+        meterRegistry.counter(name(meterPrefix, "request.cancelled"),
+                "errorCause", "spuriousRequest"
+        ).increment();
         statsSink.onTerminate(ongoingRequest.id());
         tracker.endTrack(ongoingRequest);
         cancelSubscription();
@@ -249,7 +251,9 @@ public class HttpPipelineHandler extends SimpleChannelInboundHandler<LiveHttpReq
         if (prematureRequest != null) {
             LOGGER.warn(warningMessage("message='Spurious request received while handling another request', spuriousRequest=%s" + request));
 
-            meterRegistry.counter(name(meterPrefix, "request.cancelled.spuriousRequest")).increment();
+            meterRegistry.counter(name(meterPrefix, "request.cancelled"),
+                    "errorCause", "spuriousRequest"
+            ).increment();
             cancelSubscription();
             statsSink.onTerminate(ongoingRequest.id());
             tracker.endTrack(ongoingRequest);
@@ -357,7 +361,9 @@ public class HttpPipelineHandler extends SimpleChannelInboundHandler<LiveHttpReq
     }
 
     private State onResponseWriteError(ChannelHandlerContext ctx, Throwable cause) {
-        meterRegistry.counter(name(meterPrefix, "request.cancelled.responseWriteError")).increment();
+        meterRegistry.counter(name(meterPrefix, "request.cancelled"),
+                "errorCause", "responseWriteError"
+        ).increment();
         cancelSubscription();
         statsSink.onTerminate(ongoingRequest.id());
         tracker.endTrack(ongoingRequest);
@@ -369,7 +375,9 @@ public class HttpPipelineHandler extends SimpleChannelInboundHandler<LiveHttpReq
     }
 
     private State onChannelInactive() {
-        meterRegistry.counter(name(meterPrefix, "request.cancelled.channelInactive")).increment();
+        meterRegistry.counter(name(meterPrefix, "request.cancelled"),
+                "errorCause", "channelInactive"
+        ).increment();
         if (future != null) {
             LOGGER.warn(warningMessage("message=onChannelInactive"));
             future.cancel(false);
@@ -381,7 +389,9 @@ public class HttpPipelineHandler extends SimpleChannelInboundHandler<LiveHttpReq
     }
 
     private State onChannelExceptionWhenSendingResponse(ChannelHandlerContext ctx, Throwable cause) {
-        meterRegistry.counter(name(meterPrefix, "request.cancelled.channelExceptionWhileSendingResponse")).increment();
+        meterRegistry.counter(name(meterPrefix, "request.cancelled"),
+                "errorCause", "channelExceptionWhileSendingResponse"
+        ).increment();
         cancelSubscription();
         statsSink.onTerminate(ongoingRequest.id());
         tracker.endTrack(ongoingRequest);
@@ -392,7 +402,9 @@ public class HttpPipelineHandler extends SimpleChannelInboundHandler<LiveHttpReq
     }
 
     private State onChannelExceptionWhenWaitingForResponse(ChannelHandlerContext ctx, Throwable cause) {
-        meterRegistry.counter(name(meterPrefix, "request.cancelled.channelExceptionWhileWaitingForResponse")).increment();
+        meterRegistry.counter(name(meterPrefix, "request.cancelled"),
+                "errorCause", "channelExceptionWhileWaitingForResponse"
+        ).increment();
         statsSink.onTerminate(ongoingRequest.id());
         tracker.endTrack(ongoingRequest);
         cancelSubscription();
@@ -416,9 +428,9 @@ public class HttpPipelineHandler extends SimpleChannelInboundHandler<LiveHttpReq
                             + "cause=\"{}\", "
                             + "serverAddress={}, "
                             + "clientAddress={}",
-                    new Object[]{sslException.getMessage(),
-                            ctx.channel().localAddress(),
-                            ctx.channel().remoteAddress()});
+                    sslException.getMessage(),
+                    ctx.channel().localAddress(),
+                    ctx.channel().remoteAddress());
 
             return TERMINATED;
         }
@@ -458,7 +470,9 @@ public class HttpPipelineHandler extends SimpleChannelInboundHandler<LiveHttpReq
             return this.state();
         }
 
-        meterRegistry.counter(name(meterPrefix, "request.cancelled.responseError")).increment();
+        meterRegistry.counter(name(meterPrefix, "request.cancelled"),
+                "errorCause", "responseError"
+        ).increment();
         cancelSubscription();
 
         LOGGER.error(warningMessage(format("message='Error proxying request', requestId=%s cause=%s", requestId, cause)));
@@ -495,7 +509,9 @@ public class HttpPipelineHandler extends SimpleChannelInboundHandler<LiveHttpReq
     }
 
     private State onResponseObservableCompletedTooSoon(ChannelHandlerContext ctx, Object requestId) {
-        meterRegistry.counter(name(meterPrefix, "request.cancelled.observableCompletedTooSoon")).increment();
+        meterRegistry.counter(name(meterPrefix, "request.cancelled"),
+                "errorCause", "observableCompletedTooSoon"
+        ).increment();
 
         if (!ongoingRequest.id().equals(requestId)) {
             return this.state();

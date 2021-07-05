@@ -107,7 +107,7 @@ class ChunkedDownloadSpec extends FunSpec
       eventually(timeout(5 seconds)) {
         assert(busyConnections(originTwo) == 0, "Connection remains busy.")
         assert(closedConnections(originTwo) == 1)
-        styxServer.meterRegistry().get("proxy.request.cancelled.responseWriteError").counter().count() should be(1.0)
+        styxServer.meterRegistry().counter("proxy.request.cancelled", "errorCause", "responseWriteError").count() should be(1.0)
       }
     }
   }
